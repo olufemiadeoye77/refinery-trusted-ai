@@ -49,3 +49,5 @@ jobs:
 
       - name: Zero-trust attack simulation
         run: python scripts/demo_attacks.py
+      - name: Zone conduit enforcement
+        run: python scripts/demo_zones.py
