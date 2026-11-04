@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+
+# Env
+.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Evidence artifacts (regenerate, do not commit except on release)
+compliance/evidence/*.json
+!compliance/evidence/.gitkeep
+
+# Containerlab
+zero-trust/lab/clab-*/
+*.log
