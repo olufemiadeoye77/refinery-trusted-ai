@@ -1,0 +1,58 @@
+%% Trusted Multi-Agent AI Advisory — Integrated Architecture
+%% Render: mermaid-cli (mmdc) or paste into mermaid.live
+flowchart TB
+  subgraph L45["Enterprise / Cloud Governance (Purdue L4-L5)"]
+    MR[Model Registry]
+    RR[AI Risk Register]
+    CE[Compliance Evidence Store]
+    TR[Training Pipeline]
+  end
+
+  subgraph L35["OT DMZ - AI Advisory & Zero-Trust Enforcement (L3.5)"]
+    ORCH[Orchestrator Agent]
+    QA[Quality Agent]
+    EA[Energy Agent]
+    MA[Maintenance Agent]
+    CA[Compliance Agent]
+    ZT["Zero-Trust Enforcement Point<br/>signature - version - nonce - replay - fail-closed"]
+    ORCH --> QA
+    ORCH --> EA
+    ORCH --> MA
+    QA --> CA
+    EA --> CA
+    MA --> CA
+    CA --> ZT
+  end
+
+  subgraph L3["Operations & Human Approval (L3)"]
+    OP["Operator Console<br/>ranked advisory + provenance + evidence ref"]
+    MOC["Management of Change / Setpoint Procedure"]
+    OP --> MOC
+  end
+
+  subgraph L02["Refining Process & Safety (L0-L2)"]
+    DG[Degumming] --> NU[Neutralization] --> BL[Bleaching] --> DO[Deodorization]
+    SIS["Safety Instrumented Layer<br/>IEC 61511 - OUTSIDE agent graph"]
+    SIS -.independent protection.-> DG
+    SIS -.independent protection.-> NU
+    SIS -.independent protection.-> BL
+    SIS -.independent protection.-> DO
+  end
+
+  HIST[(Historian)]
+  L02 -- read-only via one-way gateway --> HIST
+  HIST -- read-only --> QA
+  HIST -- read-only --> EA
+  HIST -- read-only --> MA
+  ZT -- signed advisory package --> OP
+  MOC -- approved change only --> L02
+  MR <--> TR
+  RR <--> TR
+  CE <--> TR
+  TR -- signed model artifact --> ORCH
+  CA -- evidence record --> CE
+  ZT -. policy from .-> MR
+
+  %% Enforced invariants:
+  %% 1. No arrow from any agent into L02 except the human-gated MOC path.
+  %% 2. ZT is the only writer to OP; agents cannot address the operator directly.
