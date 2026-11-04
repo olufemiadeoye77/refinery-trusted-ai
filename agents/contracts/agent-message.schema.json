@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://refinery-trusted-ai/schemas/agent-message.schema.json",
+  "title": "AgentMessage",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["msg_id", "from", "to", "issued_at", "nonce", "intent", "payload", "signature"],
+  "properties": {
+    "msg_id":    { "type": "string", "format": "uuid" },
+    "from":      { "type": "string", "enum": ["quality", "energy", "maintenance", "orchestrator", "compliance"] },
+    "to":        { "type": "string", "enum": ["quality", "energy", "maintenance", "orchestrator", "compliance"] },
+    "issued_at": { "type": "string", "format": "date-time" },
+    "nonce":     { "type": "string", "minLength": 16, "maxLength": 128 },
+    "intent":    { "type": "string", "enum": ["propose", "constrain", "validate", "rank", "attest"] },
+    "payload":   { "type": "object" },
+    "signature": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["alg", "key_id", "value"],
+      "properties": {
+        "alg":    { "type": "string", "const": "Ed25519" },
+        "key_id": { "type": "string", "minLength": 1 },
+        "value":  { "type": "string", "pattern": "^[A-Za-z0-9+/=]+$" }
+      }
+    }
+  }
+}
