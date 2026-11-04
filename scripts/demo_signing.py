@@ -15,7 +15,7 @@ def main() -> int:
     payload = {
         "model": {
             "version": "0.1.0",
-            "artifact_hash": "sha256:" + "a" * 64,
+            "artifact_hash": "sha256:" + "b" * 64,
             "training_run": "run-2026-11-04-001",
         },
         "unit": "bleaching",
