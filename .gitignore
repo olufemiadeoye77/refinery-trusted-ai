@@ -25,3 +25,6 @@ compliance/evidence/*.json
 # Containerlab
 zero-trust/lab/clab-*/
 *.log
+
+# Signing keys (never commit private keys)
+zero-trust/signing/keys/
