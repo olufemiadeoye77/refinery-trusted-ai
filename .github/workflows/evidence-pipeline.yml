@@ -1,0 +1,66 @@
+name: evidence-pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  evidence:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: pip install -r requirements.txt
+
+      - name: Control matrix — every "complete" row must point to a real file
+        run: |
+          python - <<'PY'
+          import sys
+          from pathlib import Path
+          import yaml
+
+          m = yaml.safe_load(Path("compliance/iso42001/control-matrix.yaml").read_text())
+          failures = []
+          for row in m["rows"]:
+              status = row.get("status", "todo")
+              ev = row.get("evidence")
+              if status == "complete":
+                  if not ev or not Path(ev).exists():
+                      failures.append(f"{row['id']}: complete but evidence missing: {ev}")
+              print(f"{row['id']:10s}  {status:9s}  {ev}")
+          if failures:
+              print("\nFAILED:")
+              for f in failures: print(" -", f)
+              sys.exit(1)
+          print("\nAll complete rows have evidence.")
+          PY
+
+      - name: Approved models only
+        run: |
+          python - <<'PY'
+          import json, sys
+          from pathlib import Path
+          approved = json.loads(Path("zero-trust/policy/approved_versions.json").read_text())["approved_versions"]
+          allowed = {(a["version"], a["artifact_hash"]) for a in approved}
+          print("Approved model versions:")
+          for v, h in allowed:
+              print(f"  {v}  {h[:24]}...")
+          # Every model hash referenced in the orchestrator must be approved
+          import re
+          src = Path("agents/orchestrator/agent.py").read_text()
+          hashes = set(re.findall(r"sha256:([a-f0-9]{64})", src))
+          unapproved = hashes - {h.split(":", 1)[1] for _, h in allowed}
+          if unapproved:
+              print("Unapproved model hashes referenced in orchestrator:", unapproved)
+              sys.exit(1)
+          print("\nAll model hashes referenced in code are approved.")
+          PY
+
+      - name: Evidence artifacts reproducible
+        run: python scripts/demo_pipeline.py
