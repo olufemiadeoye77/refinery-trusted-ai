@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://refinery-trusted-ai/schemas/advisory-envelope.schema.json",
+  "title": "AdvisoryEnvelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "envelope_id", "issued_at", "nonce", "agent", "model", "unit",
+    "recommendation", "constraints", "provenance", "evidence_ref", "signature"
+  ],
+  "properties": {
+    "envelope_id": { "type": "string", "format": "uuid" },
+    "issued_at":   { "type": "string", "format": "date-time" },
+    "nonce":       { "type": "string", "minLength": 16, "maxLength": 128 },
+    "agent":       { "type": "string", "enum": ["quality", "energy", "maintenance", "orchestrator"] },
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "artifact_hash", "training_run"],
+      "properties": {
+        "version":       { "type": "string", "minLength": 1 },
+        "artifact_hash": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "training_run":  { "type": "string", "minLength": 1 }
+      }
+    },
+    "unit": { "type": "string", "enum": ["degumming", "neutralization", "bleaching", "deodorization"] },
+    "recommendation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["variable", "current_value", "proposed_value", "confidence"],
+      "properties": {
+        "variable":       { "type": "string", "minLength": 1 },
+        "current_value":  { "type": "number" },
+        "proposed_value": { "type": "number" },
+        "confidence":     { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["within_bounds", "quality_preserved"],
+      "properties": {
+        "within_bounds":     { "type": "boolean" },
+        "quality_preserved": { "type": "boolean" },
+        "violations":        { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["input_window", "model_card_ref"],
+      "properties": {
+        "input_window":   { "type": "string" },
+        "model_card_ref": { "type": "string" }
+      }
+    },
+    "evidence_ref": { "type": "string", "minLength": 1 },
+    "signature": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["alg", "key_id", "value"],
+      "properties": {
+        "alg":    { "type": "string", "const": "Ed25519" },
+        "key_id": { "type": "string", "minLength": 1 },
+        "value":  { "type": "string", "pattern": "^[A-Za-z0-9+/=]+$" }
+      }
+    }
+  }
+}
