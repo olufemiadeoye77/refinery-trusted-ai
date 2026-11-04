@@ -1,0 +1,98 @@
+# IEC 62443-3-2 / 3-3 zone and conduit definition
+# Scope: one vegetable oil refining train (degumming -> deodorization)
+# See architecture/purdue-mapping.md for ISA-95 alignment.
+
+version: 1.0
+last_reviewed: 2026-11-04
+
+zones:
+  - id: Z0_Z1_FIELD_CONTROL
+    name: Field and Control
+    purdue_level: "0-1"
+    assets:
+      - sensors (temperature, pressure, flow, level)
+      - control valves and actuators
+      - PLC / DCS controllers
+    target_sl: 3
+    notes: >
+      Primary protection is zone-boundary defence. NIST SP 800-82r4 (draft)
+      and NIST SP 800-207 apply at L3 and above; ZT is not extended into
+      the controller loop.
+
+  - id: Z2_SUPERVISORY
+    name: Supervisory / Operations
+    purdue_level: "2-3"
+    assets:
+      - HMIs
+      - engineering workstation
+      - plant historian (read replica)
+    target_sl: 3
+
+  - id: Z35_OT_DMZ_AI
+    name: OT DMZ - AI Advisory and Zero-Trust Enforcement
+    purdue_level: "3.5"
+    assets:
+      - orchestrator and specialist agents
+      - compliance agent
+      - zero-trust enforcement point
+      - model cache (signed artifacts only)
+    target_sl: 3
+    notes: >
+      AI lives here, not in the control zone. All inbound process data is
+      read-only. All outbound advisories are signed and human-gated.
+
+  - id: Z4_ENTERPRISE_GOVERNANCE
+    name: Enterprise / Cloud Governance
+    purdue_level: "4-5"
+    assets:
+      - model registry
+      - AI risk register
+      - compliance evidence store
+      - training pipeline
+    target_sl: 2
+
+conduits:
+  - id: C1_PROCESS_TO_HISTORIAN
+    from: Z0_Z1_FIELD_CONTROL
+    to: Z2_SUPERVISORY
+    direction: one_way
+    protocol: "OPC UA (read)"
+    enforcement: "data diode / one-way gateway"
+    purpose: process telemetry to historian
+
+  - id: C2_HISTORIAN_TO_AGENTS
+    from: Z2_SUPERVISORY
+    to: Z35_OT_DMZ_AI
+    direction: one_way
+    protocol: "OPC UA (read replica)"
+    enforcement: "one-way gateway"
+    purpose: read-only input to advisory agents
+
+  - id: C3_ZT_TO_OPERATOR
+    from: Z35_OT_DMZ_AI
+    to: Z2_SUPERVISORY
+    direction: "signed advisory only"
+    protocol: "HTTPS + Ed25519 signed envelope"
+    enforcement: "zero-trust enforcement point (fail-closed)"
+    purpose: advisory delivery to operator console
+
+  - id: C4_GOVERNANCE_TO_DMZ
+    from: Z4_ENTERPRISE_GOVERNANCE
+    to: Z35_OT_DMZ_AI
+    direction: bidirectional
+    protocol: "HTTPS, mutual TLS, per-session auth"
+    enforcement: "no standing VPN; authenticated session only"
+    purpose: signed model deployment and evidence sync
+
+  - id: C5_DMZ_TO_GOVERNANCE
+    from: Z35_OT_DMZ_AI
+    to: Z4_ENTERPRISE_GOVERNANCE
+    direction: one_way
+    protocol: "HTTPS"
+    enforcement: "evidence egress only"
+    purpose: compliance evidence egress
+
+invariants:
+  - No conduit from Z35 to Z0_Z1_FIELD_CONTROL.
+  - No conduit carries unsigned content into Z2_SUPERVISORY or Z4.
+  - Operator approval is required before any setpoint change enters Z0_Z1.
