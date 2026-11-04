@@ -1,0 +1,81 @@
+# ISO/IEC 42001:2023 control-to-evidence matrix
+# Every row points to a real repository artifact.
+# Empty evidence or status: todo is an open finding the evidence pipeline surfaces.
+# Verify control numbering against your licensed copy of the standard.
+
+standard: ISO/IEC 42001:2023
+last_reviewed: 2026-11-04
+
+rows:
+  - id: A.2.2
+    area: Policies related to AI
+    requirement: AI policy established, communicated, reviewed
+    evidence: compliance/iso42001/ai-policy.md
+    owner: ai-governance
+    status: draft
+
+  - id: A.4.2
+    area: Resources for AI systems
+    requirement: Competence and awareness of AI roles documented
+    evidence: docs/roles-and-responsibilities.md
+    status: todo
+
+  - id: A.5.2
+    area: Assessing impacts of AI systems
+    requirement: AI system impact assessment performed and recorded
+    evidence: compliance/iso42001/impact-assessment-template.md
+    status: draft
+
+  - id: A.6.1.2
+    area: AI system life cycle
+    requirement: AI system development objectives and criteria defined
+    evidence: agents/contracts/advisory-envelope.schema.json
+    status: draft
+
+  - id: A.6.2.4
+    area: AI system life cycle - verification
+    requirement: Verification of AI system against requirements
+    evidence: .github/workflows/ci.yml
+    status: todo
+
+  - id: A.6.2.6
+    area: AI system life cycle - deployment
+    requirement: Deployment controlled and approved
+    evidence: zero-trust/policy/model-allowlist.rego
+    status: todo
+
+  - id: A.6.2.8
+    area: AI system life cycle - operation and monitoring
+    requirement: Monitoring for drift and performance degradation
+    evidence: cloud/training-pipeline/drift-monitor.md
+    status: todo
+
+  - id: A.7.3
+    area: Data for AI systems
+    requirement: Data quality criteria defined and met
+    evidence: process/baselines.md
+    status: todo
+
+  - id: A.8.2
+    area: Information for interested parties
+    requirement: Model card and system documentation available
+    evidence: agents/quality_agent/MODEL_CARD.md
+    status: todo
+
+  - id: A.9.2
+    area: Use of AI systems
+    requirement: Human oversight of AI outputs defined and enforced
+    evidence: docs/SAFETY-BOUNDARY.md
+    status: complete
+
+  - id: A.10.2
+    area: Third-party relationships
+    requirement: Supplier AI components assessed
+    evidence: compliance/iso42001/supplier-assessment.md
+    status: todo
+
+  - id: CL.9.1
+    area: Performance evaluation
+    requirement: Monitoring, measurement, analysis, evaluation
+    evidence: .github/workflows/evidence-pipeline.yml
+    status: draft
