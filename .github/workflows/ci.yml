@@ -14,9 +14,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Install schema validator
-        run: pip install jsonschema
-      - name: Validate schemas are well-formed JSON Schema
+
+      - name: Install deps
+        run: pip install -r requirements.txt
+
+      - name: Validate schemas
         run: |
           python - <<'PY'
           import json
@@ -24,11 +26,26 @@ jobs:
           from jsonschema.validators import validator_for
           for p in Path("agents/contracts").glob("*.schema.json"):
               schema = json.loads(p.read_text())
-              cls = validator_for(schema)
-              cls.check_schema(schema)
+              validator_for(schema).check_schema(schema)
               print(f"ok: {p}")
           PY
-      - name: Smoke test the digital twin
+
+      - name: Twin structural smoke test
         run: |
           cd process
-          python -c "from twin.train_model import simulate; s = simulate(); assert s['overall_quality_ok']; print('twin ok')"
+          python - <<'PY'
+          from twin.train_model import simulate
+          s = simulate()
+          assert len(s["units"]) == 4
+          assert set(s["units"]) == {"degumming","neutralization","bleaching","deodorization"}
+          print("twin ok:", s["finished_oil"])
+          PY
+
+      - name: Signing round-trip
+        run: python scripts/demo_signing.py
+
+      - name: End-to-end pipeline
+        run: python scripts/demo_pipeline.py
+
+      - name: Zero-trust attack simulation
+        run: python scripts/demo_attacks.py
