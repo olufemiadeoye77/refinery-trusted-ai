@@ -1,0 +1,34 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install schema validator
+        run: pip install jsonschema
+      - name: Validate schemas are well-formed JSON Schema
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from jsonschema.validators import validator_for
+          for p in Path("agents/contracts").glob("*.schema.json"):
+              schema = json.loads(p.read_text())
+              cls = validator_for(schema)
+              cls.check_schema(schema)
+              print(f"ok: {p}")
+          PY
+      - name: Smoke test the digital twin
+        run: |
+          cd process
+          python -c "from twin.train_model import simulate; s = simulate(); assert s['overall_quality_ok']; print('twin ok')"
