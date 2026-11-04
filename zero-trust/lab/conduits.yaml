@@ -1,0 +1,64 @@
+# Machine-readable conduit matrix. Mirrors architecture/zones-conduits.yaml
+# but adds explicit allow/deny rules for the zone router.
+# Order matters: first match wins.
+
+version: 1
+zones:
+  - Z0_FIELD
+  - Z1_CONTROL
+  - Z2_SUPERVISORY
+  - Z35_DMZ
+  - Z4_GOVERNANCE
+
+conduits:
+  - id: C1_process_to_historian
+    from: Z0_FIELD
+    to: Z2_SUPERVISORY
+    direction: one_way
+    protocol: "OPC UA read"
+    allowed: true
+
+  - id: C2_historian_to_agents
+    from: Z2_SUPERVISORY
+    to: Z35_DMZ
+    direction: one_way
+    protocol: "OPC UA read replica"
+    allowed: true
+
+  - id: C3_zt_to_operator
+    from: Z35_DMZ
+    to: Z2_SUPERVISORY
+    direction: signed_advisory
+    protocol: "HTTPS + Ed25519"
+    allowed: true
+
+  - id: C4_governance_to_dmz
+    from: Z4_GOVERNANCE
+    to: Z35_DMZ
+    direction: bidirectional
+    protocol: "HTTPS, mTLS, per-session"
+    allowed: true
+
+  - id: C5_dmz_to_governance
+    from: Z35_DMZ
+    to: Z4_GOVERNANCE
+    direction: one_way
+    protocol: "HTTPS evidence egress"
+    allowed: true
+
+forbidden:
+  - from: Z35_DMZ
+    to: Z1_CONTROL
+    reason: "No write path from AI to PLC/DCS"
+  - from: Z35_DMZ
+    to: Z0_FIELD
+    reason: "No path from AI to field devices"
+  - from: Z4_GOVERNANCE
+    to: Z1_CONTROL
+    reason: "Enterprise cannot reach control directly"
+  - from: Z4_GOVERNANCE
+    to: Z0_FIELD
+    reason: "Enterprise cannot reach field devices"
+  - from: Z2_SUPERVISORY
+    to: Z0_FIELD
+    reason: "Supervisory cannot bypass control layer"

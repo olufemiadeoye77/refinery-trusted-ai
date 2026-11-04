@@ -1,0 +1,54 @@
+# Reference Containerlab topology for the four-zone OT architecture.
+#
+# NOT run in CI. Documented deployment shape for a local lab.
+# Run on Linux/WSL2 with Docker and Containerlab installed:
+#
+#   sudo containerlab deploy -t zero-trust/lab/topology.clab.yml
+#   sudo containerlab destroy -t zero-trust/lab/topology.clab.yml
+#
+# In CI, zone rules are enforced by zero-trust/lab/zone_router.py
+# (see scripts/demo_zones.py) which does not require Docker.
+
+name: refinery-ot-zones
+
+topology:
+  nodes:
+    z1_plc:
+      kind: linux
+      image: alpine:3.19
+      exec:
+        - ip addr add 10.1.0.10/24 dev eth1
+    z2_historian:
+      kind: linux
+      image: alpine:3.19
+      exec:
+        - ip addr add 10.2.0.10/24 dev eth1
+    z35_agents:
+      kind: linux
+      image: alpine:3.19
+      exec:
+        - ip addr add 10.35.0.10/24 dev eth1
+    z4_governance:
+      kind: linux
+      image: alpine:3.19
+      exec:
+        - ip addr add 10.4.0.10/24 dev eth1
+    gateway_1_2:
+      kind: linux
+      image: alpine:3.19
+      exec:
+        - ip addr add 10.1.0.1/24 dev eth1
+        - ip addr add 10.2.0.1/24 dev eth2
+    zt_point_2_35:
+      kind: linux
+      image: alpine:3.19
+      exec:
+        - ip addr add 10.2.0.2/24 dev eth1
+        - ip addr add 10.35.0.1/24 dev eth2
+
+  links:
+    - endpoints: ["z1_plc:eth1", "gateway_1_2:eth1"]
+    - endpoints: ["z2_historian:eth1", "gateway_1_2:eth2"]
+    - endpoints: ["z2_historian:eth1", "zt_point_2_35:eth1"]
+    - endpoints: ["z35_agents:eth1", "zt_point_2_35:eth2"]
+    - endpoints: ["z35_agents:eth1", "z4_governance:eth1"]
