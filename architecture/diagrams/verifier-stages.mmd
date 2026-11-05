@@ -1,0 +1,21 @@
+%% Verifier state machine: eight stages, fail-closed at each
+stateDiagram-v2
+    [*] --> signature_present
+    signature_present --> REJECT: missing
+    signature_present --> signature_alg: present
+    signature_alg --> REJECT: wrong alg
+    signature_alg --> key_registry: Ed25519
+    key_registry --> REJECT: unknown agent
+    key_registry --> agent_match: known
+    agent_match --> REJECT: header != key
+    agent_match --> signature: match
+    signature --> REJECT: invalid
+    signature --> policy: valid
+    policy --> REJECT: model not allowlisted
+    policy --> freshness: allowlisted
+    freshness --> REJECT: skew > 300s
+    freshness --> nonce: fresh
+    nonce --> REJECT: replay
+    nonce --> ACCEPT: unseen
+    ACCEPT --> [*]: record nonce, deliver
+    REJECT --> [*]: log (stage, reason)
