@@ -7,7 +7,25 @@
 |---|---|---|
 | **Cryptographic** | Ed25519 + model-version allowlist + nonce store + timestamp skew | forged signatures, replayed envelopes, unapproved models, stale envelopes |
 | **Network** | IEC 62443 zone router with explicit conduit matrix | AI-to-PLC, enterprise-to-control, supervisory-to-field |
+## Visual evidence
 
+### Baseline vs after advisory
+
+![Baseline vs advisory](docs/figures/01-baseline-vs-advisory.png)
+
+### Attack matrix — every attack fails at a specific stage
+
+![Attack matrix](docs/figures/02-attack-matrix.png)
+
+### Zone conduit map — IEC 62443
+
+![Zone conduit map](docs/figures/03-zone-conduit-map.png)
+
+### Compliance coverage — ISO/IEC 42001
+
+![Compliance coverage](docs/figures/04-compliance-coverage.png)
+
+Regenerate with `python scripts/generate_charts.py`.
 ## Safety boundary
 
 The AI is advisory. It has no write path to the PLC/DCS and is outside the IEC 61511 safety instrumented function. See docs/SAFETY-BOUNDARY.md.
